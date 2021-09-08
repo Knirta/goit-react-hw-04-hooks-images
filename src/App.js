@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import SearchBar from "./components/SearchBar";
 import Loader from "react-loader-spinner";
@@ -21,6 +21,8 @@ const App = () => {
   const [modalData, setModalData] = useState({ url: "", desc: "" });
 
   const { url, desc } = modalData;
+
+  const prevSearchQueryRef = useRef();
 
   const handleFormSubmit = (query) => {
     setSearchQuery(query);
@@ -54,6 +56,8 @@ const App = () => {
       return;
     }
 
+    const prevSearchQuery = prevSearchQueryRef.current;
+
     setLoading(true);
     setShowButton(false);
 
@@ -62,7 +66,11 @@ const App = () => {
       .then((response) => response.json())
       .then(({ hits }) => {
         if (hits.length === 0) {
-          return toast.info("There ara no images, enter another query");
+          if (searchQuery !== prevSearchQuery) {
+            return toast.info("Enter another query");
+          } else {
+            return toast.info("There ara no more images, enter new query");
+          }
         }
 
         if (hits.length === 12) {
@@ -76,6 +84,8 @@ const App = () => {
         if (page !== 1) {
           smoothScroll();
         }
+
+        prevSearchQueryRef.current = searchQuery;
       })
       .catch((error) => setError(error))
       .finally(() => setLoading(false));
